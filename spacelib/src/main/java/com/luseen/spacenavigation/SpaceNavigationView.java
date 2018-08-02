@@ -302,8 +302,9 @@ public class SpaceNavigationView extends RelativeLayout {
         centreButton.setBackgroundTintList(ColorStateList.valueOf(centreButtonColor));
         centreButton.setImageResource(centreButtonIcon);
 
-        if (isCentreButtonIconColorFilterEnabled || isCentreButtonSelectable)
-            centreButton.getDrawable().setColorFilter(inActiveCentreButtonIconColor, PorterDuff.Mode.SRC_IN);
+        if (isCentreButtonIconColorFilterEnabled || isCentreButtonSelectable) {
+            updateCentreButtonSelection(currentSelectedItem);
+        }
 
         centreButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -555,52 +556,7 @@ public class SpaceNavigationView extends RelativeLayout {
             return;
         }
 
-        if (isCentreButtonSelectable) {
-            /**
-             * Selects the centre button as current
-             */
-            if (selectedIndex == -1) {
-                if (centreButton != null) {
-                    centreButton.getDrawable().setColorFilter(activeCentreButtonIconColor, PorterDuff.Mode.SRC_IN);
-
-                    if (activeCentreButtonBackgroundColor != NOT_DEFINED) {
-                        centreButton.setBackgroundTintList(ColorStateList.valueOf(activeCentreButtonBackgroundColor));
-                    }
-                }
-            }
-
-            /**
-             * Removes selection from centre button
-             */
-            if (currentSelectedItem == -1) {
-                if (centreButton != null) {
-                    centreButton.getDrawable().setColorFilter(inActiveCentreButtonIconColor, PorterDuff.Mode.SRC_IN);
-
-                    if (activeCentreButtonBackgroundColor != NOT_DEFINED) {
-                        centreButton.setBackgroundTintList(ColorStateList.valueOf(centreButtonColor));
-                    }
-                }
-            }
-        }
-
-        /**
-         * Change active and inactive icon and text color
-         */
-        for (int i = 0; i < spaceItemList.size(); i++) {
-            if (i == selectedIndex) {
-                RelativeLayout textAndIconContainer = (RelativeLayout) spaceItemList.get(selectedIndex);
-                ImageView spaceItemIcon = (ImageView) textAndIconContainer.findViewById(R.id.space_icon);
-                TextView spaceItemText = (TextView) textAndIconContainer.findViewById(R.id.space_text);
-                spaceItemText.setTextColor(activeSpaceItemColor);
-                Utils.changeImageViewTint(spaceItemIcon, activeSpaceItemColor);
-            } else if (i == currentSelectedItem) {
-                RelativeLayout textAndIconContainer = (RelativeLayout) spaceItemList.get(i);
-                ImageView spaceItemIcon = (ImageView) textAndIconContainer.findViewById(R.id.space_icon);
-                TextView spaceItemText = (TextView) textAndIconContainer.findViewById(R.id.space_text);
-                spaceItemText.setTextColor(inActiveSpaceItemColor);
-                Utils.changeImageViewTint(spaceItemIcon, inActiveSpaceItemColor);
-            }
-        }
+        setCurrentSelectedItem(selectedIndex);
 
         /**
          * Set a listener that gets fired when the selected item changes
@@ -645,6 +601,49 @@ public class SpaceNavigationView extends RelativeLayout {
         if (restoredBundle != null) {
             if (restoredBundle.containsKey(CURRENT_SELECTED_ITEM_BUNDLE_KEY))
                 currentSelectedItem = restoredBundle.getInt(CURRENT_SELECTED_ITEM_BUNDLE_KEY, 0);
+        }
+    }
+
+    public void setCurrentSelectedItem(int selectedIndex) {
+
+
+        updateCentreButtonSelection(selectedIndex);
+
+        /**
+         * Change active and inactive icon and text color
+         */
+        for (int i = 0; i < spaceItemList.size(); i++) {
+            if (i == selectedIndex) {
+                RelativeLayout textAndIconContainer = (RelativeLayout) spaceItemList.get(selectedIndex);
+                ImageView spaceItemIcon = (ImageView) textAndIconContainer.findViewById(R.id.space_icon);
+                TextView spaceItemText = (TextView) textAndIconContainer.findViewById(R.id.space_text);
+                spaceItemText.setTextColor(activeSpaceItemColor);
+                Utils.changeImageViewTint(spaceItemIcon, activeSpaceItemColor);
+            } else if (i == currentSelectedItem) {
+                RelativeLayout textAndIconContainer = (RelativeLayout) spaceItemList.get(i);
+                ImageView spaceItemIcon = (ImageView) textAndIconContainer.findViewById(R.id.space_icon);
+                TextView spaceItemText = (TextView) textAndIconContainer.findViewById(R.id.space_text);
+                spaceItemText.setTextColor(inActiveSpaceItemColor);
+                Utils.changeImageViewTint(spaceItemIcon, inActiveSpaceItemColor);
+            }
+        }
+
+        /**
+         * Change current selected item index
+         */
+        currentSelectedItem = selectedIndex;
+    }
+
+    private void updateCentreButtonSelection(int selectedIndex) {
+        boolean isSelectCentreButton = selectedIndex == -1;
+        if (isCentreButtonSelectable && centreButton != null) {
+            int iconColor = isSelectCentreButton ? activeCentreButtonIconColor : inActiveCentreButtonIconColor;
+            centreButton.getDrawable().setColorFilter(iconColor, PorterDuff.Mode.SRC_IN);
+
+            if (activeCentreButtonBackgroundColor != NOT_DEFINED) {
+                int backGroundColor = isSelectCentreButton ? activeCentreButtonBackgroundColor : centreButtonColor;
+                centreButton.setBackgroundTintList(ColorStateList.valueOf(backGroundColor));
+            }
         }
     }
 
@@ -886,8 +885,12 @@ public class SpaceNavigationView extends RelativeLayout {
     public void setCentreButtonSelected() {
         if (!isCentreButtonSelectable)
             throw new ArrayIndexOutOfBoundsException("Please be more careful, you must set the centre button selectable");
-        else
+
+        if (centreButton != null) {
             updateSpaceItems(-1);
+        } else {
+            setCurrentSelectedItem(-1);
+        }
     }
 
     /**
