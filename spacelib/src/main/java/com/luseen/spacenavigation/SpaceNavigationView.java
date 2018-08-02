@@ -224,16 +224,13 @@ public class SpaceNavigationView extends RelativeLayout {
         params.height = spaceNavigationHeight;
         setBackgroundColor(ContextCompat.getColor(context, R.color.space_transparent));
         setLayoutParams(params);
+
+        restoreCurrentItem();
     }
 
     @Override
     protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
         super.onSizeChanged(width, height, oldWidth, oldHeight);
-
-        /**
-         * Restore current item index from savedInstance
-         */
-        restoreCurrentItem();
 
         /**
          * Trow exceptions if items size is greater than 4 or lesser than 2
@@ -605,7 +602,7 @@ public class SpaceNavigationView extends RelativeLayout {
     }
 
     public void setCurrentSelectedItem(int selectedIndex) {
-
+        savedInstanceState = null;
 
         updateCentreButtonSelection(selectedIndex);
 
